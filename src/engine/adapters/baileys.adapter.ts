@@ -100,10 +100,12 @@ export class BaileysAdapter implements IWhatsAppEngine {
       printQRInTerminal: false,
       // BaileysLogger matches ILogger exactly; cast needed because the module resolves
       // the type through a deep import path that TypeScript does not auto-unify here.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       logger: createSilentLogger() as unknown as ILogger,
     });
     this.sock = sock;
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     sock.ev.on('creds.update', saveCreds);
     sock.ev.on('connection.update', update => this.handleConnectionUpdate(update));
     sock.ev.on('messages.upsert', event => this.handleMessagesUpsert(event));
@@ -162,11 +164,12 @@ export class BaileysAdapter implements IWhatsAppEngine {
     }
   }
 
-  async disconnect(): Promise<void> {
+  disconnect(): Promise<void> {
     this.intentionalClose = true;
     this.sock?.end(undefined);
     this.sock = null;
     this.setStatus(EngineStatus.DISCONNECTED);
+    return Promise.resolve();
   }
 
   async logout(): Promise<void> {
@@ -185,11 +188,12 @@ export class BaileysAdapter implements IWhatsAppEngine {
     // stale creds ever block re-linking.
   }
 
-  async destroy(): Promise<void> {
+  destroy(): Promise<void> {
     this.intentionalClose = true;
     this.sock?.end(undefined);
     this.sock = null;
     this.setStatus(EngineStatus.DISCONNECTED);
+    return Promise.resolve();
   }
 
   // ----- Status -----
@@ -246,6 +250,7 @@ export class BaileysAdapter implements IWhatsAppEngine {
   }
 
   // ----- Gated: not supported by this minimal slice (no store) -----
+  /* eslint-disable @typescript-eslint/no-unused-vars */
 
   sendImageMessage(_chatId: string, _media: MediaInput): Promise<MessageResult> {
     return this.unsupported('sendImageMessage');
@@ -412,6 +417,7 @@ export class BaileysAdapter implements IWhatsAppEngine {
   deleteChat(_chatId: string): Promise<boolean> {
     return this.unsupported('deleteChat');
   }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   // ----- Helpers -----
 
@@ -433,7 +439,9 @@ export class BaileysAdapter implements IWhatsAppEngine {
     }
   }
 
-  private handleMessagesUpdate(updates: Array<{ key?: { id?: string | null }; update?: { status?: number | null } }>): void {
+  private handleMessagesUpdate(
+    updates: Array<{ key?: { id?: string | null }; update?: { status?: number | null } }>,
+  ): void {
     for (const u of updates) {
       const status = mapBaileysStatus(u.update?.status);
       if (status && u.key?.id) {
@@ -473,7 +481,6 @@ export class BaileysAdapter implements IWhatsAppEngine {
     return typeof ts === 'number' ? ts : ts.toNumber();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private unsupported(method: string): Promise<any> {
     return Promise.reject(new EngineNotSupportedError(method));
   }

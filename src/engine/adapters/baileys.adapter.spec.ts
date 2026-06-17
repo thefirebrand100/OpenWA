@@ -40,8 +40,7 @@ import { EngineStatus, EngineEventCallbacks } from '../interfaces/whatsapp-engin
 import { EngineNotReadyError } from '../../common/errors/engine-not-ready.error';
 import { EngineNotSupportedError } from '../../common/errors/engine-not-supported.error';
 
-const newAdapter = (): BaileysAdapter =>
-  new BaileysAdapter({ sessionId: 'sess-1', authDir: './data/baileys' });
+const newAdapter = (): BaileysAdapter => new BaileysAdapter({ sessionId: 'sess-1', authDir: './data/baileys' });
 
 const noopCallbacks = (over: Partial<EngineEventCallbacks> = {}): EngineEventCallbacks => over;
 
@@ -82,9 +81,13 @@ describe('BaileysAdapter lifecycle & status', () => {
     const onDisconnected = jest.fn();
     const adapter = newAdapter();
     await adapter.initialize(noopCallbacks({ onDisconnected }));
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const makeWASocket = jest.requireMock('@whiskeysockets/baileys').default as jest.Mock;
     makeWASocket.mockClear();
-    fakeSock.fire('connection.update', { connection: 'close', lastDisconnect: { error: { output: { statusCode: 401 } } } });
+    fakeSock.fire('connection.update', {
+      connection: 'close',
+      lastDisconnect: { error: { output: { statusCode: 401 } } },
+    });
     expect(adapter.getStatus()).toBe(EngineStatus.DISCONNECTED);
     expect(onDisconnected).toHaveBeenCalled();
     expect(makeWASocket).not.toHaveBeenCalled(); // no reconnect
@@ -94,9 +97,13 @@ describe('BaileysAdapter lifecycle & status', () => {
     const onDisconnected = jest.fn();
     const adapter = newAdapter();
     await adapter.initialize(noopCallbacks({ onDisconnected }));
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const makeWASocket = jest.requireMock('@whiskeysockets/baileys').default as jest.Mock;
     makeWASocket.mockClear();
-    fakeSock.fire('connection.update', { connection: 'close', lastDisconnect: { error: { output: { statusCode: 515 } } } });
+    fakeSock.fire('connection.update', {
+      connection: 'close',
+      lastDisconnect: { error: { output: { statusCode: 515 } } },
+    });
     await new Promise(r => setImmediate(r)); // let the async connect() run
     expect(makeWASocket).toHaveBeenCalledTimes(1);
     expect(onDisconnected).not.toHaveBeenCalled();
@@ -193,6 +200,7 @@ describe('BaileysAdapter messaging', () => {
 });
 
 describe('BaileysAdapter inbound fan-out', () => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const baileys = jest.requireMock('@whiskeysockets/baileys') as { getContentType: jest.Mock };
 
   beforeEach(() => {
@@ -217,6 +225,7 @@ describe('BaileysAdapter inbound fan-out', () => {
       ],
     });
     expect(onMessage).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const msg = onMessage.mock.calls[0][0] as { id: string; body: string; type: string; fromMe: boolean };
     expect(msg).toMatchObject({ id: 'IN1', body: 'hi there', type: 'text', fromMe: false });
   });
@@ -246,7 +255,9 @@ describe('BaileysAdapter inbound fan-out', () => {
     await adapter.initialize({ onMessage });
     fakeSock.fire('messages.upsert', {
       type: 'append',
-      messages: [{ key: { remoteJid: '628111@s.whatsapp.net', fromMe: false, id: 'OLD' }, message: { conversation: 'old' } }],
+      messages: [
+        { key: { remoteJid: '628111@s.whatsapp.net', fromMe: false, id: 'OLD' }, message: { conversation: 'old' } },
+      ],
     });
     expect(onMessage).not.toHaveBeenCalled();
   });
@@ -259,4 +270,3 @@ describe('BaileysAdapter inbound fan-out', () => {
     expect(onMessageAck).toHaveBeenCalledWith('OUT1', 'delivered');
   });
 });
-
