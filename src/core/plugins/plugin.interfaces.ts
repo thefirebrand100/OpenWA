@@ -70,6 +70,11 @@ export interface PluginManifest {
   // capability facade. Static (manifest) by design: editing plugin config cannot widen scope.
   sessions?: string[];
 
+  // Whether the plugin is scoped to specific sessions (default true). A session-scoped plugin only
+  // receives hook events for the sessions an operator has activated it for (see activeSessions); a
+  // global plugin (false) always runs, with no per-number notion (e.g. a metrics logger).
+  sessionScoped?: boolean;
+
   // Outbound-HTTP host allowlist for `ctx.net.fetch` (requires the `net:fetch` permission). Each
   // entry is `host:port` (exact) or a bare `host` (any port); `'*'` allows any public host. Absent /
   // empty = deny all. The SSRF guard still blocks internal IPs regardless of this list.
@@ -236,6 +241,9 @@ export interface PluginInstance {
   error?: string;
   loadedAt?: Date;
   enabledAt?: Date;
+  // Sessions a session-scoped plugin is activated for; ['*'] = all. Defaulted to ['*'] on enable.
+  // Ignored for a global (sessionScoped:false) plugin. Persisted on the registry entry.
+  activeSessions?: string[];
   // First-party built-ins (engines, bundled extensions) run in-process; plugins loaded from the
   // plugins directory are untrusted and run sandboxed in a worker. `false` => sandboxed.
   builtIn?: boolean;
@@ -255,4 +263,7 @@ export interface PluginRegistryEntry {
   builtIn: boolean; // True for bundled plugins
   installedAt: Date;
   updatedAt: Date;
+  // Sessions a session-scoped plugin is activated for; ['*'] = all. Absent = not yet set (treated
+  // as ['*'] on enable).
+  activeSessions?: string[];
 }
