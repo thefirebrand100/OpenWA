@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Human-readable console logs: the `LoggerService` now renders a colorized, NestJS-style line (`[OpenWA] <pid> - <timestamp> <LEVEL> [Context] <message>` with dimmed `key=value` metadata and stack traces on their own line) instead of always emitting raw JSON, so application logs line up visually with NestJS's own framework logs. The format defaults to structured JSON in production (`NODE_ENV=production`, for containers and log aggregators) and human-readable pretty everywhere else, and can be pinned with `LOG_FORMAT=pretty|json`. `NO_COLOR` / `FORCE_COLOR` are honored. JSON output is byte-for-byte unchanged when selected. (#469)
 
+### Fixed
+
+- Dashboard "by type" message chart: each message type now gets a stable, distinct color keyed by type name (with a deterministic hash fallback) instead of a rotating array-index palette, so a slice keeps its color when the set of present types changes between requests and types past the eighth no longer collide. (#486)
+
 ## [0.7.6] - 2026-06-26
 
 ### Changed
