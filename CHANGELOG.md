@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.9] - 2026-06-28
+
 ### Added
 
 - **Bounded list pagination.** `GET /sessions` and `GET /webhooks` (and the matching agent tools) now accept `limit` (1–1000, default 1000) and `offset` query parameters, so large deployments can page through results instead of receiving an unbounded list. (#496)
